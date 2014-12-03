@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.messager.dao.IMessageOperation">
+    
+	<resultMap type="Message" id="resultMessageList">
+        <id column="message_id" property="messageId" />
+        <result column="sender_id" property="senderId" />
+        <result column="sender_nick" property="senderNick" />
+        <result column="title" property="title" />
+        <result column="content" property="content" />
+    </resultMap>
+    
+    <select id="getMessageByID" parameterType="int" resultType="Message">
+        select * from `message` where message_id = #{id}
+    </select>
+    
+    <select id="getMessageList" parameterType="int" resultMap="resultMessageList">
+        select * from `message` where sender_id = #{id}
+    </select>
+    
+    <insert id="saveMessage" parameterType="Message" 
+        useGeneratedKeys="true" keyProperty="messageId"> 
+        insert into message(sender_id,receiver_id,sender_nick,title,content,send_date,message_type,status)  
+             values(#{senderId},#{receiverId},#{senderNick},#{title},#{content},#{sendDate},#{messageType},#{status})  
+    </insert>
+</mapper>
