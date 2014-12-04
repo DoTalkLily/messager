@@ -2,6 +2,8 @@ package com.messager.processor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.AsyncContext;
 
@@ -13,27 +15,29 @@ import com.messager.common.DBUtils;
 import com.messager.dao.IMessageOperation;
 import com.messager.dataobject.Message;
 
-public class RequestProcessor implements Runnable {
+public class QueryProcessor implements Runnable {
 
 	private AsyncContext asyncContext;
 
-	private Message message;
+	private Map<String, Object> params;
 
-	public RequestProcessor() {
+	public QueryProcessor() {
 	}
 
-	public RequestProcessor(AsyncContext asyncContext, Message message) {
+	public QueryProcessor(AsyncContext asyncContext, Map<String, Object> params) {
 		this.asyncContext = asyncContext;
-		this.message = message;
+		this.params = params;
 	}
 
 	@Override
 	public void run() {
 		SqlSession session = DBUtils.getSqlSession();
+		List<Message> messages = null;
+
 		try {
 			IMessageOperation userOperation = session
 					.getMapper(IMessageOperation.class);
-			userOperation.saveMessage(this.message);
+			messages = userOperation.getMessageList(this.params);
 			session.commit();
 		} finally {
 			DBUtils.closeSession(session);
@@ -46,9 +50,7 @@ public class RequestProcessor implements Runnable {
 			ObjectMapper mapper = new ObjectMapper();
 			ObjectNode node = mapper.createObjectNode();
 			node.put("code", 200);
-			ObjectNode data = mapper.createObjectNode();
-			data.put("message_id", message.getMessageId());
-			node.put("data", data);
+			node.put("data", mapper.writeValueAsString(messages));
 			node.put("err_msg", "");
 			out.write(mapper.writeValueAsString(node));
 			out.flush();

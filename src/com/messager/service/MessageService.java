@@ -2,29 +2,38 @@ package com.messager.service;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.messager.common.Constants;
+import com.messager.common.Utils;
+import com.messager.dao.MessageOperation;
 import com.messager.dataobject.Message;
-import com.messager.processor.RequestProcessor;
+import com.messager.processor.QueryProcessor;
 
 /**
  * Servlet implementation class MessageServlet
  */
 @WebServlet(urlPatterns = "/message", asyncSupported = true)
 public class MessageService extends HttpServlet {
+
 	private static final long serialVersionUID = 1L;
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(MessageService.class);
 
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -39,16 +48,74 @@ public class MessageService extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		String time = request.getParameter("time");
-		// request.setAttribute("org.apache.catalina.ASYNC_SUPPORTED", true);
+		// 获取参数
+		String userId = request.getParameter("user_id");
+		String end = request.getParameter("end_time");
+		String begin = request.getParameter("begin_time");
+		String senderId = request.getParameter("sender_id");
+		String senderNick = request.getParameter("sender_nick");
+		String messageType = request.getParameter("message_type");
+		String status = request.getParameter("status");
+		String offset = request.getParameter("offset");
+		String limit = request.getParameter("limit");
+
+		// 参数校验
+		// 用户id不能为空
+		if (!Utils.isValidNumericStr(userId)) {
+			respondError(response, Constants.ERROR_USERID);
+			return;
+		}
+		// 如果发送者id不为空，判断是否为数字
+		if (!Utils.isEmpty(senderId)) {
+			if (!Utils.isNumeric(senderId)) {
+				respondError(response, Constants.ERROR_SENDER);
+				return;
+			}
+		}
+		// 开始时间和结束时间必须同时指定
+		if (!Utils.isEmpty(begin) && !Utils.isEmpty(end)) {
+
+			if (!Utils.isNumeric(begin) || !Utils.isNumeric(end)) {
+				respondError(response, Constants.ERROR_TIME_INTERVAL);
+				return;
+			}
+
+			begin = Utils.timeStamp2Date(begin, Constants.DATE_FORMAT);
+			end = Utils.timeStamp2Date(end, Constants.DATE_FORMAT);
+		}
+		// 状态如果指定，判断是否在有效状态中
+		if (!Utils.isEmpty(status)) {
+			if (!Utils.isNumeric(status)
+					|| !Constants.MESSAGE_TYPE.contains(Integer
+							.parseInt(status))) {
+				respondError(response, Constants.ERROR_STATUS);
+				return;
+			}
+		}
+		// offset limit必须同时制定，判断是否为数字
+		if (!Utils.isEmpty(offset) && !Utils.isEmpty(limit)) {
+			if (!Utils.isNumeric(offset) || !Utils.isNumeric(limit)) {
+				respondError(response, Constants.ERROR_OFFSET_LIMIT);
+				return;
+			}
+		}
+
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("userId", Long.parseLong(userId));
+		params.put("begin", begin);
+		params.put("end", end);
+		params.put("senderId", senderId);
+		params.put("senderNick", senderNick);
+		params.put("messageType", messageType);
+		params.put("status", status);
+		params.put("offset", offset);
+		params.put("limit", limit);
 
 		AsyncContext asyncCtx = request.startAsync();
 		asyncCtx.addListener(new AsyncListener());
 		asyncCtx.setTimeout(Constants.TIMEOUT);
 
-		// ThreadPoolExecutor executor = (ThreadPoolExecutor) request
-		// .getServletContext().getAttribute("executor");
-		// executor.execute(new RequestProcessor(asyncCtx, message));
+		ContextListener.executor.execute(new QueryProcessor(asyncCtx, params));
 	}
 
 	/**
@@ -65,40 +132,100 @@ public class MessageService extends HttpServlet {
 		String messageType = request.getParameter("message_type");
 
 		// 标题验证
-		if (StringUtils.(title)) {
+		if (Utils.isEmpty(title)) {
 			respondError(response, Constants.ERROR_TITLE);
 			return;
 		}
 		// 内容验证
-		if (content == null || content.trim().equals(Constants.EMPTY)) {
+		if (Utils.isEmpty(content)) {
 			respondError(response, Constants.ERROR_CONTENT);
 			return;
 		}
-		// // 发送者校验
-		// if ((senderId == null && senderNick == null) || receiverId == null) {
-		// respondError(response, Constants.ERROR_SENDER_OR_RECEIVER);
-		// return;
-		// }
-
-		if (messageType == null
-				|| !Constants.MESSAGE_TYPE.contains(Integer
-						.parseInt(messageType))) {
-			respondError(response, Constants.ERROR_MESSAGE_TYPE);
+		// 发送者验证,发送者id和名字都没填
+		if (!Utils.isValidNumericStr(senderId) && Utils.isEmpty(senderNick)) {
+			respondError(response, Constants.ERROR_SENDER);
 			return;
+		}
+		// 接收者验证
+		if (!Utils.isValidNumericStr(receiverId)) {
+			respondError(response, Constants.ERROR_RECEIVER);
 		}
 
 		// 存储消息对象
-		Message message = new Message(title, content,
-				Integer.parseInt(senderId), senderNick,
-				Integer.parseInt(receiverId), Integer.parseInt(messageType));
+		long receiver = Long.parseLong(receiverId);
 
-		AsyncContext asyncCtx = request.startAsync();
-		asyncCtx.addListener(new AsyncListener());
-		asyncCtx.setTimeout(Constants.TIMEOUT);
+		Message message = new Message(title, content, Long.parseLong(senderId),
+				senderNick, receiver, messageType);
 
-		ThreadPoolExecutor executor = (ThreadPoolExecutor) request
-				.getServletContext().getAttribute("executor");
-		executor.execute(new RequestProcessor(asyncCtx, message));
+		MessageOperation.saveMessageToDB(message);// 保存消息到数据库
+
+		respondResult(response, "message_id", message.getMessageId());// 返回发送成功信息
+
+		notifyNewMessageToUser(receiver, message);// 如果接收者在线，通知接收者
+	}
+
+	private void notifyNewMessageToUser(long receiverId, Message message) {
+
+		if (ContextListener.mapUserIdContext.containsKey(receiverId)) {
+
+			AsyncContext asyncContext = ContextListener.mapUserIdContext
+					.remove(receiverId);
+
+			if (asyncContext == null) {
+				logger.info("asyncContext for id: " + receiverId
+						+ " is not exist.");
+				return;
+			}
+
+			PrintWriter out = null;
+
+			try {
+				out = asyncContext.getResponse().getWriter();
+
+				if (out == null) {
+					logger.info("asyncContext for id: " + receiverId
+							+ " PrintWriter is null");
+					return;
+				}
+
+				respondResult(asyncContext.getResponse(), "message", message);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (out != null) {
+					out.close();
+				}
+			}
+		}
+	}
+
+	private void respondResult(ServletResponse servletResponse,
+			String dataName, Object dataValue) {
+		String result = null;
+		PrintWriter out = null;
+
+		try {
+			// 构建结果字符串
+			ObjectMapper mapper = new ObjectMapper();
+			ObjectNode node = mapper.createObjectNode();
+			node.put("code", Constants.SUCCESS);
+			node.put("err_msg", "");
+			ObjectNode dataNode = mapper.createObjectNode();
+			dataNode.put(dataName, mapper.writeValueAsString(dataValue));
+			node.put("data", dataNode);
+			result = mapper.writeValueAsString(node);
+
+			// 发送结果字符串
+			out = servletResponse.getWriter();
+			out.write(result);
+			out.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (out != null) {
+				out.close();
+			}
+		}
 	}
 
 	/**
@@ -106,7 +233,7 @@ public class MessageService extends HttpServlet {
 	 * 
 	 * @param response
 	 */
-	private void respondError(HttpServletResponse response, int code) {
+	private void respondError(ServletResponse response, int code) {
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("application/json; charset=utf-8");
 		PrintWriter out = null;

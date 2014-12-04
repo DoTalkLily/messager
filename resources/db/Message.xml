@@ -16,8 +16,26 @@
         select * from `message` where message_id = #{id}
     </select>
     
-    <select id="getMessageList" parameterType="int" resultMap="resultMessageList">
-        select * from `message` where sender_id = #{id}
+    <select id="getMessageList" parameterType="Map" resultType="Message">
+        select * from `message` where receiver_id = #{userId}
+		    <if test="senderId != null">
+		         AND sender_id = #{senderId}
+		    </if> 
+		    <if test="status != null">
+		         AND status = #{status}
+		    </if>
+		    <if test="senderNick != null">
+		         AND sender_nick = #{senderNick}
+		    </if>
+		    <if test="messageType != null">
+		         AND message_type = #{messageType}
+		    </if>
+		    <if test="begin != null and end != null">
+		         AND send_date between ${begin} AND $(end)
+		    </if>
+		    <if test="page > 0 and offset > 0">
+       		     AND limit #{page}, #{offset}
+   			</if>
     </select>
     
     <insert id="saveMessage" parameterType="Message" 

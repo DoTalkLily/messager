@@ -2,15 +2,15 @@ package com.messager.dataobject;
 
 import java.sql.Timestamp;
 
+import com.messager.common.Constants;
+
 public class Message {
 
-	int status;// 阅读状态,默认新消息
+	int status;// 阅读状态,默认未读消息
 
-	int senderId;// 发送者id
+	long senderId;// 发送者id
 
-	int receiverId;// 接收者id
-
-	int messageType;// 消息类型 通知—1，错误—2，警告—3
+	long receiverId;// 接收者id
 
 	long messageId;// 消息id
 
@@ -20,10 +20,13 @@ public class Message {
 
 	String senderNick;// 发送者用户名
 
+	String messageType;// 消息类型
+
 	Timestamp sendDate;// 发送时间
 
-	public Message(String title, String content, int senderId,
-			String senderNick, int receiverId, int messageType) {
+	public Message(String title, String content, long senderId,
+			String senderNick, long receiverId, String messageType) {
+		this.status = Constants.MESSAGE_UNREAD;// 默认未读消息
 		this.title = title;
 		this.content = content;
 		this.senderId = senderId;
@@ -41,27 +44,27 @@ public class Message {
 		this.status = status;
 	}
 
-	public int getSenderId() {
+	public long getSenderId() {
 		return senderId;
 	}
 
-	public void setSenderId(int senderId) {
+	public void setSenderId(long senderId) {
 		this.senderId = senderId;
 	}
 
-	public int getReceiverId() {
+	public long getReceiverId() {
 		return receiverId;
 	}
 
-	public void setReceiverId(int receiverId) {
+	public void setReceiverId(long receiverId) {
 		this.receiverId = receiverId;
 	}
 
-	public int getMessageType() {
+	public String getMessageType() {
 		return messageType;
 	}
 
-	public void setMessageType(int messageType) {
+	public void setMessageType(String messageType) {
 		this.messageType = messageType;
 	}
 
