@@ -2,45 +2,60 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.messager.dao.IMessageOperation">
+<mapper namespace="com.alibaba.base.messager.dao.IMessageOperation">
     
-	<resultMap type="Message" id="resultMessageList">
+	 <resultMap type="Message" id="resultMessage">
         <id column="message_id" property="messageId" />
         <result column="sender_id" property="senderId" />
-        <result column="sender_nick" property="senderNick" />
+        <result column="sender_nick" property="senderNick"/>
+        <result column="receiver_id" property="receiverId"/>
+        <result column="message_type" property="messageType"/>
         <result column="title" property="title" />
         <result column="content" property="content" />
-    </resultMap>
+        <result column="send_date" property="date"/>
+        <result column="status" property="status"/>
+     </resultMap>
     
-    <select id="getMessageByID" parameterType="int" resultType="Message">
-        select * from `message` where message_id = #{id}
+    <select id="getMessageById" resultMap="resultMessage">
+        select * from message where message_id = #{messageId} and receiver_id = #{receiverId}
     </select>
     
-    <select id="getMessageList" parameterType="java.util.Map" resultType="Message">
-        select * from `message` where receiver_id = #{userId}
-		    <if test="senderId != null">
+    <select id="getMessageList" resultMap="resultMessage">
+        select * from message where receiver_id = #{receiverId}
+		    <if test="senderId > 0">
 		         AND sender_id = #{senderId}
 		    </if> 
-		    <if test="status != null">
+		    <if test="status > 0">
 		         AND status = #{status}
 		    </if>
-		    <if test="senderNick != null">
+		    <if test="senderNick != null and senderNick !=''">
 		         AND sender_nick = #{senderNick}
 		    </if>
-		    <if test="messageType != null">
+		    <if test="messageType != null and messageType !=''">
 		         AND message_type = #{messageType}
 		    </if>
-		    <if test="begin != null and end != null">
-		         AND send_date between ${begin} AND $(end)
+		    <if test="beginTime != null and endTime != null">
+				AND send_date BETWEEN #{beginTime} AND #{endTime}
 		    </if>
-		    <if test="page > 0 and offset > 0">
-       		     AND limit #{page}, #{offset}
+		    <if test="offset >= 0 and limit > 0">
+       		     limit #{offset},#{limit}
    			</if>
     </select>
     
     <insert id="saveMessage" parameterType="Message" 
         useGeneratedKeys="true" keyProperty="messageId"> 
         insert into message(sender_id,receiver_id,sender_nick,title,content,send_date,message_type,status)  
-             values(#{senderId},#{receiverId},#{senderNick},#{title},#{content},#{sendDate},#{messageType},#{status})  
+             values(#{senderId},#{receiverId},#{senderNick},#{title},#{content},#{date},#{messageType},#{status})  
     </insert>
+    
+    <update id="updateMessage">
+        update message set status = ${toStatus} where receiver_id = ${receiverId} and message_id = ${messageId}
+    </update>
+    
+    <update id="updateMessageList">
+        update message set status = ${toStatus} where receiver_id = ${receiverId} and message_id in
+         <foreach item="item" index="index" collection="messageIds" open="(" separator="," close=")">
+		  	#{item}
+		 </foreach>
+    </update>
 </mapper>

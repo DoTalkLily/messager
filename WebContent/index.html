@@ -3,16 +3,39 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Insert title here</title>
+<script src="js/jquery.js"></script>
 </head>
 <body>
 <form action="/message" method="post">
-  <p>sender id:<input type="text" name="sender_id" /></p>
-  <p>sender nick:<input type="text" name="sender_nick"/></p>
-  <p>receiver id:<input type="text" name="receiver_id"/></p>
+  <p>sender id:<input type="text" name="senderId" /></p>
+  <p>sender nick:<input type="text" name="senderNick"/></p>
+  <p>receiver id:<input type="text" name="receiverId"/></p>
   <p>title:<input type="text" name="title" /></p>
   <p>content: <input type="textarea" name="content" /></p>
-  <p>message type:<input type="text" name="message_type"/></p>
+  <p>message type:<input type="text" name="messageType"/></p>
   <input type="submit" value="Submit" />
 </form>
+
+
+<script>
+/**
+ 
+$(function(){
+	$.ajax({
+		  type: 'POST',
+		  url: "/message/status",
+		  data: {
+			  'userId':2323,
+			  'messageIds':[46,47,48],
+			  'toStatus':3
+		  },
+		  success: function(data){
+			  console.log(data);
+		  },
+		  dataType: 'json'
+	});
+}());* 
+ */
+</script>
 </body>
 </html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+<script src="js/jquery.js"></script>
+</head>
+<body>
+<script>
+$(function(){
+	listenMessage();
+	
+	function listenMessage(){
+	    $.ajax({
+	        url:'http://localhost:8080/message/realtime',       //跨域url
+	        type:'GET',                                //jsonp 类型下只能使用GET,不能用POST,这里不写默认为GET
+	        dataType:'jsonp',                          //指定为jsonp类型
+	        data:{                                     //参数
+	           "userId":2323
+	        }, 
+	        jsonp:'jsonpCallback',                          //服务器端获取回调函数名的key，callback是默认值
+	        jsonpCallback:'getMessage',                //回调函数名
+	        success:function(result){                  //成功执行处理，对应后台返回的getMessage(data)方法。
+	            console.log(result);
+	        	if(result.data){
+	               //提取新消息、渲染     
+	               alert(result.data);
+	            }
+	            
+	            listenMessage();                       //立即发起新请求
+	        },
+	        error:function(msg){
+	            listenMessage();                       //立即发起新请求
+	        }
+	    }); 
+	}
+}());
+/**
+ 
+$(function(){
+	$.ajax({
+		  type: 'POST',
+		  url: "/message/status",
+		  data: {
+			  'userId':2323,
+			  'messageIds':[46,47,48],
+			  'toStatus':3
+		  },
+		  success: function(data){
+			  console.log(data);
+		  },
+		  dataType: 'json'
+	});
+}());* 
+ */
+</script>
+</body>
+</html>
