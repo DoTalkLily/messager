@@ -29,7 +29,7 @@ public class MessageStatusService extends HttpServlet {
 		String toStatus = request.getParameter("toStatus");
 
 		// 用户id不能为空
-		if (!Utils.isValidNumericStr(receiverId)) {
+		if (Utils.isEmpty(receiverId)) {
 			ServiceUtils.respondError(response, Constants.ERROR_USERID);
 			return;
 		}
@@ -59,7 +59,7 @@ public class MessageStatusService extends HttpServlet {
 		asyncCtx.addListener(new AsyncListener());
 		asyncCtx.setTimeout(Constants.TIMEOUT);
 
-		ContextListener.executor.execute(new UpdateProcessor(asyncCtx, Long
-				.parseLong(receiverId), ids, Integer.parseInt(toStatus)));
+		ContextListener.executor.execute(new UpdateProcessor(asyncCtx,
+				receiverId, ids, Integer.parseInt(toStatus)));
 	}
 }

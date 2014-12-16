@@ -9,7 +9,7 @@ public class UpdateProcessor implements Runnable {
 
 	private int toStatus;
 
-	private long receiverId;
+	private String receiverId;
 
 	private long[] messageIds;
 
@@ -18,7 +18,7 @@ public class UpdateProcessor implements Runnable {
 	public UpdateProcessor() {
 	}
 
-	public UpdateProcessor(AsyncContext asyncContext, long receiverId,
+	public UpdateProcessor(AsyncContext asyncContext, String receiverId,
 			long[] messageIds, int toStatus) {
 		this.toStatus = toStatus;
 		this.messageIds = messageIds;

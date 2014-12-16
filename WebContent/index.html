@@ -18,8 +18,6 @@
 
 
 <script>
-/**
- 
 $(function(){
 	$.ajax({
 		  type: 'POST',
@@ -27,15 +25,14 @@ $(function(){
 		  data: {
 			  'userId':2323,
 			  'messageIds':[46,47,48],
-			  'toStatus':3
+			  'toStatus':2
 		  },
 		  success: function(data){
 			  console.log(data);
 		  },
 		  dataType: 'json'
 	});
-}());* 
- */
+}());
 </script>
 </body>
 </html>

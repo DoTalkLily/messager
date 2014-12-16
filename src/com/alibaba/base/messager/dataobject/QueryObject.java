@@ -8,15 +8,19 @@ public class QueryObject {
 
 	private int offset;
 
+	private long messageId;
+
 	private String endTime;
 
 	private String beginTime;
 
-	private long senderId;
+	private String senderId;
 
-	private long messageId;
+	private String orderBy;
 
-	private long receiverId;
+	private String sortMethod;
+
+	private String receiverId;
 
 	private String senderNick;
 
@@ -46,20 +50,36 @@ public class QueryObject {
 		this.offset = offset;
 	}
 
-	public long getReceiverId() {
-		return receiverId;
-	}
-
-	public void setReceiverId(long receiverId) {
-		this.receiverId = receiverId;
-	}
-
-	public long getSenderId() {
+	public String getSenderId() {
 		return senderId;
 	}
 
-	public void setSenderId(long senderId) {
+	public void setSenderId(String senderId) {
 		this.senderId = senderId;
+	}
+
+	public String getOrderBy() {
+		return orderBy;
+	}
+
+	public void setOrderBy(String orderBy) {
+		this.orderBy = orderBy;
+	}
+
+	public String getSortMethod() {
+		return sortMethod;
+	}
+
+	public void setSortMethod(String sortMethod) {
+		this.sortMethod = sortMethod;
+	}
+
+	public String getReceiverId() {
+		return receiverId;
+	}
+
+	public void setReceiverId(String receiverId) {
+		this.receiverId = receiverId;
 	}
 
 	public String getEndTime() {

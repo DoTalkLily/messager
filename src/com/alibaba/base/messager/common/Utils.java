@@ -43,6 +43,13 @@ public class Utils {
 	}
 
 	/*
+	 * 判断字符串格式是否符合 yyyy-MM-dd HH:mm:ss
+	 */
+	public static boolean isValidDate(String date) {
+		return date.matches("\\d{4}-\\d{1,2}-\\d{1,2}\\s\\d{2}:\\d{2}:\\d{2}");
+	}
+
+	/*
 	 * 编码转换，处理get获得的参数中文乱码情况
 	 */
 	public static String encode(String param) {

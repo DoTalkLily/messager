@@ -58,8 +58,8 @@ public class MessageOperation {
 		return message;
 	}
 
-	public static void updateMessageStatus(long receiverId, long[] messageIds,
-			int toStatus) {
+	public static void updateMessageStatus(String receiverId,
+			long[] messageIds, int toStatus) {
 		SqlSession session = DBUtils.getSqlSession();
 
 		try {

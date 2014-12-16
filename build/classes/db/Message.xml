@@ -37,6 +37,9 @@
 		    <if test="beginTime != null and endTime != null">
 				AND send_date BETWEEN #{beginTime} AND #{endTime}
 		    </if>
+		    <if test="orderBy !=null and sortMethod != null">
+		        ORDER BY #{orderBy} #{sortMethod}
+		    </if>
 		    <if test="offset >= 0 and limit > 0">
        		     limit #{offset},#{limit}
    			</if>

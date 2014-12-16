@@ -15,10 +15,10 @@ public interface IMessageOperation {
 
 	public void saveMessage(Message message);
 
-	public void updateMessage(@Param("receiverId") long receiverId,
+	public void updateMessage(@Param("receiverId") String receiverId,
 			@Param("messageId") long messageId, @Param("toStatus") int toStauts);
 
-	public void updateMessageList(@Param("receiverId") long receiverId,
+	public void updateMessageList(@Param("receiverId") String receiverId,
 			@Param("messageIds") long[] messageIds,
 			@Param("toStatus") int toStauts);
 }

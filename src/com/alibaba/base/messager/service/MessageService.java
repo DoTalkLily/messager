@@ -52,9 +52,11 @@ public class MessageService extends HttpServlet {
 		String begin = request.getParameter("beginTime");
 		String senderId = request.getParameter("senderId");
 		String status = request.getParameter("status");
-		String offset = request.getParameter("offset");
-		String limit = request.getParameter("limit");
 		String messageId = request.getParameter("messageId");
+		String pageNum = request.getParameter("pageNum");
+		String pageSize = request.getParameter("pageSize");
+		String orderBy = request.getParameter("orderBy");
+		String sortMethod = request.getParameter("sortMethod");
 		String senderNick = Utils.encode(request.getParameter("senderNick"));
 		String messageType = Utils.encode(request.getParameter("messageType"));
 
@@ -65,12 +67,12 @@ public class MessageService extends HttpServlet {
 
 		// 参数校验
 		// 用户id不能为空
-		if (!Utils.isValidNumericStr(receiverId)) {
+		if (Utils.isEmpty(receiverId)) {
 			ServiceUtils.respondError(response, Constants.ERROR_USERID);
 			return;
 		}
 
-		params.setReceiverId(Long.parseLong(receiverId));
+		params.setReceiverId(receiverId);
 
 		// 如果消息id不为空,查询并返回消息体
 		if (!Utils.isEmpty(messageId)) {
@@ -84,28 +86,20 @@ public class MessageService extends HttpServlet {
 					params));
 			return;
 		}
-
-		// 如果发送者id不为空，判断是否为数字
+		// 如果发送者id不为空
 		if (!Utils.isEmpty(senderId)) {
-			if (!Utils.isNumeric(senderId)) {
-				ServiceUtils.respondError(response, Constants.ERROR_SENDER);
-				return;
-			}
-
-			params.setSenderId(Long.parseLong(senderId));
+			params.setSenderId(senderId);
 		}
 		// 开始时间和结束时间必须同时指定
 		if (!Utils.isEmpty(begin) && !Utils.isEmpty(end)) {
-
-			if (!Utils.isNumeric(begin) || !Utils.isNumeric(end)
+			logger.info("begin:" + begin + "  end:" + end);
+			if (!Utils.isValidDate(begin) || !Utils.isValidDate(end)
 					|| begin.compareTo(end) > 0) {
 				ServiceUtils.respondError(response,
 						Constants.ERROR_TIME_INTERVAL);
 				return;
 			}
 
-			end = Utils.timeStamp2Date(end, Constants.DATE_FORMAT);
-			begin = Utils.timeStamp2Date(begin, Constants.DATE_FORMAT);
 			params.setBeginTime(begin);
 			params.setEndTime(end);
 		}
@@ -120,14 +114,48 @@ public class MessageService extends HttpServlet {
 			params.setStatus(Integer.parseInt(status));
 		}
 		// offset limit必须同时制定，判断是否为数字
-		if (!Utils.isEmpty(offset) && !Utils.isEmpty(limit)) {
-			if (!Utils.isNumeric(offset) || !Utils.isNumeric(limit)) {
+		if (!Utils.isEmpty(pageNum) && !Utils.isEmpty(pageSize)) {
+			if (!Utils.isNumeric(pageNum) || !Utils.isNumeric(pageSize)) {
 				ServiceUtils.respondError(response,
 						Constants.ERROR_OFFSET_LIMIT);
 				return;
 			}
-			params.setOffset(Integer.parseInt(offset));
-			params.setLimit(Integer.parseInt(limit));
+
+			int page = Integer.parseInt(pageNum);
+
+			if (page <= 0) {
+				ServiceUtils.respondError(response,
+						Constants.ERROR_OFFSET_LIMIT);
+				return;
+			}
+
+			params.setOffset((page - 1) * Integer.parseInt(pageSize));
+			params.setLimit(Integer.parseInt(pageSize));
+		}
+
+		// 默认按时间降序
+		params.setOrderBy(Constants.COLUMN_DATE);
+		params.setSortMethod(Constants.DESC);
+
+		if (!Utils.isEmpty(orderBy)) {
+			if (!Constants.ORDER_COLUMN_NAME.contains(orderBy)) {
+				ServiceUtils.respondError(response,
+						Constants.ERROR_SORT_KEYWORD);
+				return;
+			}
+
+			params.setOrderBy(orderBy);
+		}
+
+		if (!Utils.isEmpty(sortMethod)) {
+			if (!sortMethod.equals(Constants.ASC)
+					&& !sortMethod.equals(Constants.DESC)) {
+				ServiceUtils
+						.respondError(response, Constants.ERROR_SORT_METHOD);
+				return;
+			}
+
+			params.setSortMethod(sortMethod);
 		}
 
 		params.setSenderNick(senderNick);
@@ -161,29 +189,27 @@ public class MessageService extends HttpServlet {
 			return;
 		}
 		// 发送者验证,发送者id和名字都没填
-		if (!Utils.isValidNumericStr(senderId) && Utils.isEmpty(senderNick)) {
+		if (Utils.isEmpty(senderId) && Utils.isEmpty(senderNick)) {
 			ServiceUtils.respondError(response, Constants.ERROR_SENDER);
 			return;
 		}
 		// 接收者验证
-		if (!Utils.isValidNumericStr(receiverId)) {
+		if (Utils.isEmpty(receiverId)) {
 			ServiceUtils.respondError(response, Constants.ERROR_RECEIVER);
+			return;
 		}
 
-		// 存储消息对象
-		long receiver = Long.parseLong(receiverId);
-
-		Message message = new Message(title, content, Long.parseLong(senderId),
-				senderNick, receiver, messageType);
+		Message message = new Message(title, content, senderId, senderNick,
+				receiverId, messageType);
 
 		MessageOperation.saveMessageToDB(message);// 保存消息到数据库
 
 		ServiceUtils.respondResult(response, message.getMessageId());// 返回发送成功信息
 
-		notifyNewMessageToUser(receiver, message);// 如果接收者在线，通知接收者
+		notifyNewMessageToUser(receiverId, message);// 如果接收者在线，通知接收者
 	}
 
-	private void notifyNewMessageToUser(long receiverId, Message message) {
+	private void notifyNewMessageToUser(String receiverId, Message message) {
 
 		if (ContextListener.mapUserIdContext.containsKey(receiverId)) {
 

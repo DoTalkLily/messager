@@ -8,9 +8,9 @@ public class Message {
 
 	int status;// 阅读状态,默认未读消息
 
-	long senderId;// 发送者id
+	String senderId;// 发送者id
 
-	long receiverId;// 接收者id
+	String receiverId;// 接收者id
 
 	long messageId;// 消息id
 
@@ -28,8 +28,8 @@ public class Message {
 
 	}
 
-	public Message(String title, String content, long senderId,
-			String senderNick, long receiverId, String messageType) {
+	public Message(String title, String content, String senderId,
+			String senderNick, String receiverId, String messageType) {
 		this.status = Constants.MESSAGE_UNREAD;// 默认未读消息
 		this.title = title;
 		this.content = content;
@@ -48,19 +48,19 @@ public class Message {
 		this.status = status;
 	}
 
-	public long getSenderId() {
+	public String getSenderId() {
 		return senderId;
 	}
 
-	public void setSenderId(long senderId) {
+	public void setSenderId(String senderId) {
 		this.senderId = senderId;
 	}
 
-	public long getReceiverId() {
+	public String getReceiverId() {
 		return receiverId;
 	}
 
-	public void setReceiverId(long receiverId) {
+	public void setReceiverId(String receiverId) {
 		this.receiverId = receiverId;
 	}
 

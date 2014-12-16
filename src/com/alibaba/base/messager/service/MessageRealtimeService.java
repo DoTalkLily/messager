@@ -61,7 +61,6 @@ public class MessageRealtimeService extends HttpServlet {
 
 		logger.info("id put in map:" + receiverId + " callback:" + callback);
 
-		ContextListener.mapUserIdContext.put(Long.parseLong(receiverId),
-				asyncCtx);
+		ContextListener.mapUserIdContext.put(receiverId, asyncCtx);
 	}
 }

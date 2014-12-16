@@ -18,7 +18,7 @@ public class ContextListener implements ServletContextListener {
 
 	public static ThreadPoolExecutor executor;// 线程池
 
-	public static Map<Long, AsyncContext> mapUserIdContext;// 等待新消息的用户id——AsyncContext映射
+	public static Map<String, AsyncContext> mapUserIdContext;// 等待新消息的用户id——AsyncContext映射
 
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
 		// 创建线程池
@@ -27,7 +27,7 @@ public class ContextListener implements ServletContextListener {
 				TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(
 						Constants.CORE_POOL_SIZE));
 
-		mapUserIdContext = new HashMap<Long, AsyncContext>(
+		mapUserIdContext = new HashMap<String, AsyncContext>(
 				Constants.CORE_POOL_SIZE);
 	}
 

@@ -25,6 +25,12 @@ public class Constants {
 
 	public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";// 日期类型
 
+	public static final String COLUMN_DATE = "send_date";// 发送时间
+
+	public static final String ASC = "asc";// 升序
+
+	public static final String DESC = "desc";// 降序
+
 	public static final int ANNOUNCE = 1;// 消息类型：通知
 
 	public static final int WARNING = 2;// 消息类型：警告
@@ -37,6 +43,16 @@ public class Constants {
 			add(ANNOUNCE);
 			add(WARNING);
 			add(ERROR);
+		}
+	};
+
+	@SuppressWarnings("serial")
+	public static List<String> ORDER_COLUMN_NAME = new ArrayList<String>() {
+		{
+			add("send_date");
+			add("sender_id");
+			add("sender_nick");
+			add("sender_status");
 		}
 	};
 
@@ -65,6 +81,10 @@ public class Constants {
 
 	public static final int ERROR_CALLBACK = 410;
 
+	public static final int ERROR_SORT_KEYWORD = 411;
+
+	public static final int ERROR_SORT_METHOD = 412;
+
 	public static final int ERROR_SERVER = 500;
 
 	@SuppressWarnings("serial")
@@ -82,6 +102,8 @@ public class Constants {
 			put(ERROR_OFFSET_LIMIT, "offset或limit错误");
 			put(ERROR_MESSAGE_ID, "消息id格式不正确");
 			put(ERROR_CALLBACK, "回调函数不能为空");
+			put(ERROR_SORT_KEYWORD, "排序字段暂不支持");
+			put(ERROR_SORT_METHOD, "排序顺序不正确");
 		}
 	};
 }
